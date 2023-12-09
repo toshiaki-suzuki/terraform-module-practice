@@ -19,4 +19,6 @@ module "event_bridge" {
   source = "./modules/eventbridge"
   event_pattern = var.event_pattern
   target_arn = module.sns.topic_arn
+  input_paths = var.input_paths
+  input_template = var.input_template
 }

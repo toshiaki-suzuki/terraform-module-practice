@@ -7,4 +7,10 @@ resource "aws_cloudwatch_event_target" "sns" {
   rule      = aws_cloudwatch_event_rule.event_bridge.name
   target_id = "SendToSNS"
   arn       = var.target_arn
+
+  input_transformer {
+    input_paths = var.input_paths
+    input_template = var.input_template
+  }
+
 }
