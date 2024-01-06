@@ -22,3 +22,13 @@ module "event_bridge" {
   input_paths = var.input_paths
   input_template = var.input_template
 }
+resource "aws_sns_topic" "sns_topic_for_chatbot" {
+  name = "teffaform-chatbot-test"
+}
+
+module "chatbot" {
+  source = "./modules/chatbot"
+  slack_channel_id = var.slack_channel_id
+  slack_workspace_id = var.slack_workspace_id
+  sns_topic_arn = aws_sns_topic.sns_topic_for_chatbot.arn
+}
