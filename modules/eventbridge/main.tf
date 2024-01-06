@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_event_rule" "event_bridge" {
-  name        = "terraform_event_bridge"
+  name          = "terraform_event_bridge"
   event_pattern = jsonencode(var.event_pattern)
 }
 
@@ -9,7 +9,7 @@ resource "aws_cloudwatch_event_target" "sns" {
   arn       = var.target_arn
 
   input_transformer {
-    input_paths = var.input_paths
+    input_paths    = var.input_paths
     input_template = var.input_template
   }
 

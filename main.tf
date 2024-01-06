@@ -9,7 +9,7 @@ provider "aws" {
 }
 
 # アカウントIDを取得するためのリソース
-data "aws_caller_identity" "this" { }
+data "aws_caller_identity" "this" {}
 
 # SSMパラメータストアから値を取得
 data "aws_ssm_parameter" "slack_workspace_id" {
@@ -26,16 +26,16 @@ data "aws_ssm_parameter" "sns_email_endpoint" {
 module "sns" {
   source = "./modules/sns"
   topic_policy = {
-    "Version": "2008-10-17",
-    "Id": "__default_policy_ID",
-    "Statement": [
+    "Version" : "2008-10-17",
+    "Id" : "__default_policy_ID",
+    "Statement" : [
       {
-        "Sid": "__default_statement_ID",
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "*"
+        "Sid" : "__default_statement_ID",
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "*"
         },
-        "Action": [
+        "Action" : [
           "SNS:GetTopicAttributes",
           "SNS:SetTopicAttributes",
           "SNS:AddPermission",
@@ -45,21 +45,21 @@ module "sns" {
           "SNS:ListSubscriptionsByTopic",
           "SNS:Publish"
         ],
-        "Resource": "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email",
-        "Condition": {
-          "StringEquals": {
-            "AWS:SourceOwner": "${data.aws_caller_identity.this.account_id}"
+        "Resource" : "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email",
+        "Condition" : {
+          "StringEquals" : {
+            "AWS:SourceOwner" : "${data.aws_caller_identity.this.account_id}"
           }
         }
       },
       {
-        "Sid": "AWSEvents_datasync-task_Id64472599-fdd2-40b5-b657-394eb0838ddb",
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "events.amazonaws.com"
+        "Sid" : "AWSEvents_datasync-task_Id64472599-fdd2-40b5-b657-394eb0838ddb",
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "events.amazonaws.com"
         },
-        "Action": "sns:Publish",
-        "Resource": "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email"
+        "Action" : "sns:Publish",
+        "Resource" : "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email"
       }
     ]
   }
@@ -70,20 +70,20 @@ module "sns" {
 module "event_bridge" {
   source = "./modules/eventbridge"
   event_pattern = {
-    "source": ["aws.datasync"],
-    "account": [data.aws_caller_identity.this.account_id],
-    "time": [{
-      "exists": true
+    "source" : ["aws.datasync"],
+    "account" : [data.aws_caller_identity.this.account_id],
+    "time" : [{
+      "exists" : true
     }],
-    "resources": [{
-      "prefix": "arn:aws:datasync:ap-northeast-1:${data.aws_caller_identity.this.account_id}:task/task-06e5cba3b238590af/execution/"
+    "resources" : [{
+      "prefix" : "arn:aws:datasync:ap-northeast-1:${data.aws_caller_identity.this.account_id}:task/task-06e5cba3b238590af/execution/"
     }],
-    "detail": {
-      "State": ["SUCCESS"]
+    "detail" : {
+      "State" : ["SUCCESS"]
     }
   }
-  target_arn = module.sns.topic_arn
-  input_paths = {"account":"$.account","resources":"$.resources","state":"$.detail.State","time":"$.time"}
+  target_arn     = module.sns.topic_arn
+  input_paths    = { "account" : "$.account", "resources" : "$.resources", "state" : "$.detail.State", "time" : "$.time" }
   input_template = <<EOF
     "DataSyncタスクが完了しました"
     "アカウント: <account>"
@@ -97,8 +97,8 @@ resource "aws_sns_topic" "sns_topic_for_chatbot" {
 }
 
 module "chatbot" {
-  source = "./modules/chatbot"
-  slack_channel_id = "test"
+  source             = "./modules/chatbot"
+  slack_channel_id   = "test"
   slack_workspace_id = data.aws_ssm_parameter.slack_workspace_id.value
-  sns_topic_arn = aws_sns_topic.sns_topic_for_chatbot.arn
+  sns_topic_arn      = aws_sns_topic.sns_topic_for_chatbot.arn
 }

@@ -1,5 +1,5 @@
 resource "aws_sns_topic" "this" {
-  name = "send_email"
+  name   = "send_email"
   policy = jsonencode(var.topic_policy)
 }
 
