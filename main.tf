@@ -11,48 +11,60 @@ provider "aws" {
 # アカウントIDを取得するためのリソース
 data "aws_caller_identity" "this" { }
 
+# SSMパラメータストアから値を取得
+data "aws_ssm_parameter" "slack_workspace_id" {
+  name = "/terraform/module/practice/slack_workspace_id"
+}
+
+data "aws_ssm_parameter" "sns_email_endpoint" {
+  name = "/terraform/module/practice/sns_email_endpoint"
+}
+
+
+
+# モジュールの呼び出し
 module "sns" {
   source = "./modules/sns"
   topic_policy = {
-  "Version": "2008-10-17",
-  "Id": "__default_policy_ID",
-  "Statement": [
-    {
-      "Sid": "__default_statement_ID",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": [
-        "SNS:GetTopicAttributes",
-        "SNS:SetTopicAttributes",
-        "SNS:AddPermission",
-        "SNS:RemovePermission",
-        "SNS:DeleteTopic",
-        "SNS:Subscribe",
-        "SNS:ListSubscriptionsByTopic",
-        "SNS:Publish"
-      ],
-      "Resource": "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceOwner": "${data.aws_caller_identity.this.account_id}"
+    "Version": "2008-10-17",
+    "Id": "__default_policy_ID",
+    "Statement": [
+      {
+        "Sid": "__default_statement_ID",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "*"
+        },
+        "Action": [
+          "SNS:GetTopicAttributes",
+          "SNS:SetTopicAttributes",
+          "SNS:AddPermission",
+          "SNS:RemovePermission",
+          "SNS:DeleteTopic",
+          "SNS:Subscribe",
+          "SNS:ListSubscriptionsByTopic",
+          "SNS:Publish"
+        ],
+        "Resource": "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email",
+        "Condition": {
+          "StringEquals": {
+            "AWS:SourceOwner": "${data.aws_caller_identity.this.account_id}"
+          }
         }
-      }
-    },
-    {
-      "Sid": "AWSEvents_datasync-task_Id64472599-fdd2-40b5-b657-394eb0838ddb",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "events.amazonaws.com"
       },
-      "Action": "sns:Publish",
-      "Resource": "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email"
-    }
-  ]
-}
-  protocol = var.protocol
-  endpoint = var.endpoint
+      {
+        "Sid": "AWSEvents_datasync-task_Id64472599-fdd2-40b5-b657-394eb0838ddb",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "events.amazonaws.com"
+        },
+        "Action": "sns:Publish",
+        "Resource": "arn:aws:sns:ap-northeast-1:${data.aws_caller_identity.this.account_id}:send_email"
+      }
+    ]
+  }
+  protocol = "email"
+  endpoint = data.aws_ssm_parameter.sns_email_endpoint.value
 }
 
 module "event_bridge" {
@@ -71,8 +83,14 @@ module "event_bridge" {
     }
   }
   target_arn = module.sns.topic_arn
-  input_paths = var.input_paths
-  input_template = var.input_template
+  input_paths = {"account":"$.account","resources":"$.resources","state":"$.detail.State","time":"$.time"}
+  input_template = <<EOF
+    "DataSyncタスクが完了しました"
+    "アカウント: <account>"
+    "時刻: <time>"
+    "リソース: <resources>"
+    "状態: <state>"
+    EOF
 }
 resource "aws_sns_topic" "sns_topic_for_chatbot" {
   name = "teffaform-chatbot-test"
@@ -80,7 +98,7 @@ resource "aws_sns_topic" "sns_topic_for_chatbot" {
 
 module "chatbot" {
   source = "./modules/chatbot"
-  slack_channel_id = var.slack_channel_id
-  slack_workspace_id = var.slack_workspace_id
+  slack_channel_id = "test"
+  slack_workspace_id = data.aws_ssm_parameter.slack_workspace_id.value
   sns_topic_arn = aws_sns_topic.sns_topic_for_chatbot.arn
 }
