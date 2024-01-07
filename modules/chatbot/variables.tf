@@ -6,6 +6,7 @@ variable "slack_workspace_id" {
   type = string
 }
 
-variable "sns_topic_arn" {
+variable "sns_topic_name" {
   type = string
+  
 }

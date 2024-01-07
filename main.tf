@@ -92,13 +92,10 @@ module "event_bridge" {
     "状態: <state>"
     EOF
 }
-resource "aws_sns_topic" "sns_topic_for_chatbot" {
-  name = "teffaform-chatbot-test"
-}
 
 module "chatbot" {
   source             = "./modules/chatbot"
-  slack_channel_id   = "test"
+  slack_channel_id   = "chatbot-test"
   slack_workspace_id = data.aws_ssm_parameter.slack_workspace_id.value
-  sns_topic_arn      = aws_sns_topic.sns_topic_for_chatbot.arn
+  sns_topic_name = "teffaform-chatbot-test"
 }

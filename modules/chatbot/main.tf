@@ -3,7 +3,7 @@ resource "awscc_chatbot_slack_channel_configuration" "this" {
   iam_role_arn       = awscc_iam_role.this.arn
   slack_channel_id   = var.slack_channel_id
   slack_workspace_id = var.slack_workspace_id # AWS Chatbotのコンソール画面で事前に作成しておく
-  sns_topic_arns     = [var.sns_topic_arn]
+  sns_topic_arns     = [aws_sns_topic.this.arn]
 }
 
 resource "awscc_iam_role" "this" {
@@ -21,4 +21,8 @@ resource "awscc_iam_role" "this" {
     ]
   })
   managed_policy_arns = ["arn:aws:iam::aws:policy/AWSResourceExplorerReadOnlyAccess"]
+}
+
+resource "aws_sns_topic" "this" {
+  name = var.sns_topic_name
 }
