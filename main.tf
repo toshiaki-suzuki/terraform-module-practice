@@ -16,11 +16,13 @@ data "aws_ssm_parameter" "slack_workspace_id" {
   name = "/terraform/module/practice/slack_workspace_id"
 }
 
+data "aws_ssm_parameter" "slack_channel_id" {
+  name = "/terraform/module/practice/slack_channel_id"
+}
+
 data "aws_ssm_parameter" "sns_email_endpoint" {
   name = "/terraform/module/practice/sns_email_endpoint"
 }
-
-
 
 # モジュールの呼び出し
 module "sns" {
@@ -95,7 +97,7 @@ module "event_bridge" {
 
 module "chatbot" {
   source             = "./modules/chatbot"
-  slack_channel_id   = "chatbot-test"
+  slack_channel_id   = data.aws_ssm_parameter.slack_channel_id.value
   slack_workspace_id = data.aws_ssm_parameter.slack_workspace_id.value
   sns_topic_name = "teffaform-chatbot-test"
 }
