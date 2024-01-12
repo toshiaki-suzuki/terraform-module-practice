@@ -24,6 +24,11 @@ data "aws_ssm_parameter" "sns_email_endpoint" {
   name = "/terraform/module/practice/sns_email_endpoint"
 }
 
+data "aws_ssm_parameter" "ses_domain_name" {
+  name = "/terraform/module/practice/ses_domain_name"
+}
+
+
 # モジュールの呼び出し
 module "sns" {
   source = "./modules/sns"
@@ -100,4 +105,9 @@ module "chatbot" {
   slack_channel_id   = data.aws_ssm_parameter.slack_channel_id.value
   slack_workspace_id = data.aws_ssm_parameter.slack_workspace_id.value
   sns_topic_name = "teffaform-chatbot-test"
+}
+
+module "ses" {
+  source = "./modules/ses"
+  domain_name = data.aws_ssm_parameter.ses_domain_name.value
 }
