@@ -100,12 +100,12 @@ module "event_bridge" {
     EOF
 }
 
-module "chatbot" {
-  source             = "./modules/chatbot"
-  slack_channel_id   = data.aws_ssm_parameter.slack_channel_id.value
-  slack_workspace_id = data.aws_ssm_parameter.slack_workspace_id.value
-  sns_topic_name = "teffaform-chatbot-test"
-}
+# module "chatbot" {
+#   source             = "./modules/chatbot"
+#   slack_channel_id   = data.aws_ssm_parameter.slack_channel_id.value
+#   slack_workspace_id = data.aws_ssm_parameter.slack_workspace_id.value
+#   sns_topic_name = "teffaform-chatbot-test"
+# }
 
 module "ses" {
   source = "./modules/ses"
