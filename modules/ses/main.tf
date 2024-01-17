@@ -17,7 +17,7 @@ resource "aws_ses_domain_dkim" "this" {
   domain = var.domain_name
 }
 
-# SPFによるメール送信ドメイン認証の設定
+# カスタムMAILFROMによるドメイン認証の設定
 resource "aws_ses_domain_mail_from" "this" {
   domain           = var.domain_name
   mail_from_domain = "mail.${var.domain_name}"
@@ -54,8 +54,7 @@ resource "aws_route53_record" "cname_dkim" {
   depends_on = [aws_ses_domain_dkim.this]
 }
 
-# SPF用MXレコード
-# メールの送信元として使用されるドメインのMXレコードを設定します。
+# カスタムMAILFROMドメインの設定に必要
 resource "aws_route53_record" "mx_mail" {
   zone_id = aws_route53_zone.this.zone_id
   name    = aws_ses_domain_mail_from.this.mail_from_domain
@@ -64,8 +63,7 @@ resource "aws_route53_record" "mx_mail" {
   records = ["10 feedback-smtp.ap-northeast-1.amazonses.com"]
 }
 
-# SPF用TXTレコード
-# SPF認証用のTXTレコードを設定します。
+# カスタムMAILFROMドメインによるSPF認証用のTXTレコードを設定します。
 resource "aws_route53_record" "txt_mail" {
   zone_id = aws_route53_zone.this.zone_id
   name    = aws_ses_domain_mail_from.this.mail_from_domain
